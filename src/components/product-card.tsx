@@ -1,13 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Card } from '@/components/card';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { formatPrice } from '@/lib/format';
-import type { Product } from '@/types';
+import { Card } from "@/components/card";
+import { Radius, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import type { Product } from "@/types";
 
 export type ProductCardProps = {
   product: Product;
@@ -15,13 +14,17 @@ export type ProductCardProps = {
   addingId?: string | null;
 };
 
-export function ProductCard({ product, onPressAdd, addingId }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onPressAdd,
+  addingId,
+}: ProductCardProps) {
   const theme = useTheme();
   const isAdding = addingId === product.id;
   const inStock = product.stock?.availableQuantity > 0;
 
   const open = () => {
-    router.push({ pathname: '/products/[id]', params: { id: product.id } });
+    router.push({ pathname: "/products/[id]", params: { id: product.id } });
   };
 
   return (
@@ -41,7 +44,9 @@ export function ProductCard({ product, onPressAdd, addingId }: ProductCardProps)
           />
           {product.discountPercentage > 0 ? (
             <View style={[styles.badge, { backgroundColor: theme.danger }]}>
-              <Text style={styles.badgeText}>-{Math.round(product.discountPercentage)}%</Text>
+              <Text style={styles.badgeText}>
+                -{Math.round(product.discountPercentage)}%
+              </Text>
             </View>
           ) : null}
         </View>
@@ -52,13 +57,17 @@ export function ProductCard({ product, onPressAdd, addingId }: ProductCardProps)
           </Text>
 
           <View style={styles.priceRow}>
-            {product.originalPrice > 0 && product.originalPrice > product.price ? (
-              <Text style={[styles.originalPrice, { color: theme.textSecondary }]}>
-                {formatPrice(product.originalPrice)}
+            {product.originalPrice > 0 &&
+            product.originalPrice > product.price ? (
+              <Text
+                style={[styles.originalPrice, { color: theme.textSecondary }]}
+              >
+                {/* {formatPrice(product.originalPrice)} */}
+                {product.originalPrice} ks
               </Text>
             ) : null}
             <Text style={[styles.price, { color: theme.primary }]}>
-              {formatPrice(product.price)}
+              {/* {formatPrice(product.price)} */} {product.price} ks
             </Text>
           </View>
 
@@ -69,7 +78,9 @@ export function ProductCard({ product, onPressAdd, addingId }: ProductCardProps)
                 { color: inStock ? theme.success : theme.danger },
               ]}
             >
-              {inStock ? `${product.stock.availableQuantity} in stock` : 'Out of stock'}
+              {inStock
+                ? `${product.stock.availableQuantity} in stock`
+                : "Out of stock"}
             </Text>
 
             {onPressAdd ? (
@@ -103,15 +114,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imageWrap: {
-    position: 'relative',
-    backgroundColor: '#f1f5f9',
+    position: "relative",
+    backgroundColor: "#f1f5f9",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 150,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: Spacing.two,
     right: Spacing.two,
     paddingHorizontal: Spacing.two,
@@ -119,9 +130,9 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   badgeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   content: {
     padding: Spacing.three,
@@ -129,37 +140,37 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     gap: Spacing.two,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   originalPrice: {
-    fontSize: 13,
-    textDecorationLine: 'line-through',
+    fontSize: 10,
+    textDecorationLine: "line-through",
   },
   price: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: "800",
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: Spacing.one,
   },
   stock: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addButton: {
     height: 36,
     width: 36,
     borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

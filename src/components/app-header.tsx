@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { getAddToCartItems } from '@/api/cart';
+import { CART_QUERY_KEY, getAddToCartItems } from '@/api/cart';
 import { Colors, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
@@ -17,10 +17,9 @@ export function AppHeader() {
   const user = useAuthStore((state) => state.user);
 
   const cartQuery = useQuery({
-    queryKey: ['cart-count'],
+    queryKey: CART_QUERY_KEY,
     queryFn: getAddToCartItems,
     enabled: user?.role === 'CUSTOMER',
-    staleTime: 0,
   });
 
   const cartCount =

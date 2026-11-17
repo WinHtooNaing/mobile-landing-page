@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -19,7 +19,6 @@ import { formatPrice } from '@/lib/format';
 export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const queryClient = useQueryClient();
   const addToCart = useAddToCart();
   const [quantity, setQuantity] = useState(1);
 
@@ -34,7 +33,6 @@ export default function ProductDetailsScreen() {
     if (!product) return;
     await addToCart(product, amount);
     setQuantity(1);
-    await queryClient.invalidateQueries({ queryKey: ['cart'] });
   };
 
   if (productQuery.isPending) {

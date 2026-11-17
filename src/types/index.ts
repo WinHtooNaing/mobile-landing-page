@@ -6,6 +6,11 @@ export type User = {
   role: string;
 };
 
+export type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+};
+
 export type StockProps = {
   availableQuantity: number;
   inStock: boolean;

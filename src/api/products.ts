@@ -1,16 +1,16 @@
 import { api } from './axios-instance';
-import type { Product, ProductList } from '@/types';
+import type { ApiResponse, Product, ProductList } from '@/types';
 
 export const getNewCollection = async (): Promise<ProductList> => {
-  const response = await api.get<ProductList>(
+  const response = await api.get<ApiResponse<ProductList>>(
     '/products?page=1&limit=8&sortOrder=desc'
   );
-  return response.data;
+  return response.data.data;
 };
 
 export const getProductDetail = async (id: string): Promise<Product> => {
-  const response = await api.get<Product>(`/products/${id}`);
-  return response.data;
+  const response = await api.get<ApiResponse<Product>>(`/products/${id}`);
+  return response.data.data;
 };
 
 export const getAllProducts = async (
@@ -29,6 +29,8 @@ export const getAllProducts = async (
     params.set('categoryId', String(categoryId));
   }
 
-  const response = await api.get<ProductList>(`/products?${params.toString()}`);
-  return response.data;
+  const response = await api.get<ApiResponse<ProductList>>(
+    `/products?${params.toString()}`
+  );
+  return response.data.data;
 };

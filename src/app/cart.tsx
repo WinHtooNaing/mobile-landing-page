@@ -1,34 +1,35 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
-  createOrder,
-  submitManualPayment,
-  type CreateOrderResponse,
-} from '@/api/orders';
-import {
+  CART_QUERY_KEY,
   deleteAddToCart,
   deleteAddToCartById,
   getAddToCartItems,
   updateQuantity,
-} from '@/api/cart';
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
-import { Input } from '@/components/input';
-import { Screen } from '@/components/screen';
-import { Loading, StateView } from '@/components/state-view';
-import { ThemedText } from '@/components/themed-text';
-import { PAYMENT_PROVIDERS, type PaymentProviderCode } from '@/config';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { formatPrice } from '@/lib/format';
-import { toast } from '@/lib/toast';
-import { useAuthStore } from '@/store/auth-store';
+} from "@/api/cart";
+import {
+  createOrder,
+  submitManualPayment,
+  type CreateOrderResponse,
+} from "@/api/orders";
+import { Button } from "@/components/button";
+import { Card } from "@/components/card";
+import { Input } from "@/components/input";
+import { Screen } from "@/components/screen";
+import { Loading, StateView } from "@/components/state-view";
+import { ThemedText } from "@/components/themed-text";
+import { PAYMENT_PROVIDERS, type PaymentProviderCode } from "@/config";
+import { Radius, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { formatPrice } from "@/lib/format";
+import { toast } from "@/lib/toast";
+import { useAuthStore } from "@/store/auth-store";
 
 class ManualPaymentSubmissionError extends Error {
   orderId: string;
@@ -45,57 +46,57 @@ export default function CartScreen() {
   const user = useAuthStore((state) => state.user);
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [shippingName, setShippingName] = useState('');
-  const [shippingPhone, setShippingPhone] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
-  const [note, setNote] = useState('');
-  const [providerCode, setProviderCode] = useState<PaymentProviderCode>('KBZ_PAY');
-  const [transactionReference, setTransactionReference] = useState('');
-  const [paymentImage, setPaymentImage] = useState<ImagePicker.ImagePickerAsset | null>(
-    null
-  );
+  const [shippingName, setShippingName] = useState("");
+  const [shippingPhone, setShippingPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [note, setNote] = useState("");
+  const [providerCode, setProviderCode] =
+    useState<PaymentProviderCode>("KBZ_PAY");
+  const [transactionReference, setTransactionReference] = useState("");
+  const [paymentImage, setPaymentImage] =
+    useState<ImagePicker.ImagePickerAsset | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   const cartQuery = useQuery({
-    queryKey: ['cart'],
+    queryKey: CART_QUERY_KEY,
     queryFn: getAddToCartItems,
-    enabled: user?.role === 'CUSTOMER',
+    enabled: user?.role === "CUSTOMER",
   });
 
   const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ['cart'] });
+    void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
   };
 
   const clearAll = useMutation({
     mutationFn: deleteAddToCart,
     onSuccess: (res) => {
-      if (res.success) toast.success('Cart cleared');
+      if (res.success) toast.success("Cart cleared");
       invalidate();
     },
-    onError: () => toast.error('Could not clear the cart.'),
+    onError: () => toast.error("Could not clear the cart."),
   });
 
   const removeById = useMutation({
     mutationFn: (id: string) => deleteAddToCartById(id),
     onSuccess: () => invalidate(),
-    onError: () => toast.error('Could not remove the item.'),
+    onError: () => toast.error("Could not remove the item."),
   });
 
   const changeQty = useMutation({
     mutationFn: (payload: { productId: string; quantity: number }) =>
       updateQuantity(payload),
     onSuccess: invalidate,
-    onError: () => toast.error('Could not update quantity.'),
+    onError: () => toast.error("Could not update quantity."),
   });
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      toast.error('We need photo access to attach your payment screenshot.');
+      toast.error("We need photo access to attach your payment screenshot.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
@@ -111,20 +112,20 @@ export default function CartScreen() {
       }));
 
       if (items.length === 0) {
-        throw new Error('Your cart is empty.');
+        throw new Error("Your cart is empty.");
       }
       if (!paymentImage) {
-        throw new Error('Please attach your payment screenshot.');
+        throw new Error("Please attach your payment screenshot.");
       }
       if (!transactionReference.trim()) {
-        throw new Error('Please enter the transaction reference.');
+        throw new Error("Please enter the transaction reference.");
       }
 
       let orderId = pendingOrderId ?? undefined;
 
       if (!orderId) {
         const created: CreateOrderResponse = await createOrder({
-          paymentMethod: 'MANUAL',
+          paymentMethod: "MANUAL",
           shippingName: shippingName.trim(),
           shippingPhone: shippingPhone.trim(),
           shippingAddress: shippingAddress.trim(),
@@ -132,11 +133,11 @@ export default function CartScreen() {
           items,
         });
         if (created.success === false) {
-          throw new Error(created.message ?? 'Could not create the order.');
+          throw new Error(created.message ?? "Could not create the order.");
         }
         orderId = created.orderId ?? created.data?.orderId ?? created.data?.id;
         if (!orderId) {
-          throw new Error('The order response did not include an order ID.');
+          throw new Error("The order response did not include an order ID.");
         }
       }
 
@@ -146,58 +147,62 @@ export default function CartScreen() {
           transactionReference: transactionReference.trim(),
           image: {
             uri: paymentImage.uri,
-            name: paymentImage.fileName ?? 'payment.jpg',
-            type: paymentImage.mimeType ?? 'image/jpeg',
+            name: paymentImage.fileName ?? "payment.jpg",
+            type: paymentImage.mimeType ?? "image/jpeg",
           },
         });
         if (paymentResponse.success === false) {
-          throw new Error(paymentResponse.message ?? 'Could not submit the payment.');
+          throw new Error(
+            paymentResponse.message ?? "Could not submit the payment.",
+          );
         }
       } catch (error) {
         throw new ManualPaymentSubmissionError(
           orderId,
-          error instanceof Error ? error.message : 'Payment submission failed.'
+          error instanceof Error ? error.message : "Payment submission failed.",
         );
       }
 
       try {
         const cleared = await deleteAddToCart();
         if (!cleared.success) {
-          toast.info('Order placed, but please clear your cart manually.');
+          toast.info("Order placed, but please clear your cart manually.");
         }
       } catch {
-        toast.info('Order placed, but please clear your cart manually.');
+        toast.info("Order placed, but please clear your cart manually.");
       }
 
       return orderId;
     },
     onSuccess: () => {
-      toast.success('Order placed successfully!');
+      toast.success("Order placed successfully!");
       setPendingOrderId(null);
       setCheckoutOpen(false);
       resetForm();
       invalidate();
-      router.push('/orders');
+      router.push("/orders");
     },
     onError: (error: unknown) => {
       if (error instanceof ManualPaymentSubmissionError) {
         setPendingOrderId(error.orderId);
       }
-      toast.error(error instanceof Error ? error.message : 'Something went wrong.');
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong.",
+      );
     },
   });
 
   const resetForm = () => {
-    setShippingName('');
-    setShippingPhone('');
-    setShippingAddress('');
-    setNote('');
-    setProviderCode('KBZ_PAY');
-    setTransactionReference('');
+    setShippingName("");
+    setShippingPhone("");
+    setShippingAddress("");
+    setNote("");
+    setProviderCode("KBZ_PAY");
+    setTransactionReference("");
     setPaymentImage(null);
   };
 
-  if (user?.role !== 'CUSTOMER') {
+  if (user?.role !== "CUSTOMER") {
     return (
       <Screen scroll={false}>
         <StateView
@@ -205,7 +210,7 @@ export default function CartScreen() {
           title="Sign in to view your cart"
           message="Your cart is saved to your account. Sign in to continue shopping."
           actionLabel="Go to Login"
-          onAction={() => router.push('/login')}
+          onAction={() => router.push("/login")}
         />
       </Screen>
     );
@@ -215,6 +220,20 @@ export default function CartScreen() {
     return (
       <Screen scroll={false}>
         <Loading label="Loading your cart..." />
+      </Screen>
+    );
+  }
+
+  if (cartQuery.isError) {
+    return (
+      <Screen scroll={false}>
+        <StateView
+          icon="alert-circle"
+          title="We couldn't load your cart"
+          message="Check your connection and try again."
+          actionLabel="Retry"
+          onAction={() => cartQuery.refetch()}
+        />
       </Screen>
     );
   }
@@ -230,7 +249,7 @@ export default function CartScreen() {
           title="Your cart is empty"
           message="Looks like you haven't added anything to your cart yet."
           actionLabel="Continue shopping"
-          onAction={() => router.push('/products')}
+          onAction={() => router.push("/products")}
         />
       </Screen>
     );
@@ -242,7 +261,7 @@ export default function CartScreen() {
         <View>
           <ThemedText type="subtitle">Your Cart</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.headerSub}>
-            {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+            {items.length} {items.length === 1 ? "item" : "items"} in your cart
           </ThemedText>
         </View>
         <Button
@@ -262,7 +281,7 @@ export default function CartScreen() {
               accessibilityRole="button"
               onPress={() =>
                 router.push({
-                  pathname: '/products/[id]',
+                  pathname: "/products/[id]",
                   params: { id: item.productId },
                 })
               }
@@ -279,20 +298,31 @@ export default function CartScreen() {
             <View style={styles.itemBody}>
               <View style={styles.itemTopRow}>
                 <View style={styles.itemTitleWrap}>
-                  <Text numberOfLines={1} style={[styles.itemName, { color: theme.text }]}>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.itemName, { color: theme.text }]}
+                  >
                     {item.name}
                   </Text>
                   <Text style={[styles.itemPrice, { color: theme.primary }]}>
-                    {formatPrice(item.currentUnitPrice)}
+                    {/* {formatPrice(item.currentUnitPrice)} */}
+                    {item.currentUnitPrice} Ks
                   </Text>
                 </View>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Remove ${item.name}`}
                   onPress={() => removeById.mutate(item.productId)}
-                  style={[styles.removeBtn, { backgroundColor: theme.primaryMuted }]}
+                  style={[
+                    styles.removeBtn,
+                    { backgroundColor: theme.primaryMuted },
+                  ]}
                 >
-                  <Ionicons name="trash-outline" size={18} color={theme.danger} />
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={theme.danger}
+                  />
                 </Pressable>
               </View>
 
@@ -301,7 +331,9 @@ export default function CartScreen() {
                   {formatPrice(item.currentUnitPrice * item.quantity)}
                 </Text>
 
-                <View style={[styles.qtyStepper, { borderColor: theme.border }]}>
+                <View
+                  style={[styles.qtyStepper, { borderColor: theme.border }]}
+                >
                   <Pressable
                     accessibilityRole="button"
                     onPress={() =>
@@ -337,14 +369,14 @@ export default function CartScreen() {
       </View>
 
       <Card style={styles.summary}>
-        <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
+        <SummaryRow label="Subtotal" value={`${subtotal.toString()} Ks`} />
         <SummaryRow label="Delivery" value="Free" valueColor={theme.success} />
         <SummaryRow label="Tax" value="Included" />
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
-        <SummaryRow label="Total" value={formatPrice(subtotal)} bold />
+        <SummaryRow label="Total" value={`${subtotal.toString()} Ks`} bold />
 
         <Button
-          title={checkoutOpen ? 'Hide checkout form' : 'Proceed to Checkout'}
+          title={checkoutOpen ? "Hide checkout form" : "Proceed to Checkout"}
           size="lg"
           fullWidth
           icon="shield-checkmark-outline"
@@ -361,10 +393,12 @@ export default function CartScreen() {
           </ThemedText>
 
           {pendingOrderId ? (
-            <View style={[styles.notice, { backgroundColor: theme.warning + '20' }]}>
+            <View
+              style={[styles.notice, { backgroundColor: theme.warning + "20" }]}
+            >
               <Text style={[styles.noticeText, { color: theme.warning }]}>
-                Order {pendingOrderId} already exists. Submitting again will retry
-                its payment, not create another order.
+                Order {pendingOrderId} already exists. Submitting again will
+                retry its payment, not create another order.
               </Text>
             </View>
           ) : null}
@@ -416,23 +450,35 @@ export default function CartScreen() {
                     style={[
                       styles.providerCard,
                       {
-                        backgroundColor: selected ? theme.primaryMuted : theme.card,
+                        backgroundColor: selected
+                          ? theme.primaryMuted
+                          : theme.card,
                         borderColor: selected ? theme.primary : theme.border,
                       },
                     ]}
                   >
                     <View
-                      style={[styles.providerMark, { backgroundColor: provider.colors }]}
+                      style={[
+                        styles.providerMark,
+                        { backgroundColor: provider.colors },
+                      ]}
                     >
-                      <Text style={styles.providerMarkText}>{provider.mark}</Text>
+                      <Text style={styles.providerMarkText}>
+                        {provider.mark}
+                      </Text>
                     </View>
                     <View style={styles.providerInfo}>
-                      <Text style={[styles.providerName, { color: theme.text }]}>
+                      <Text
+                        style={[styles.providerName, { color: theme.text }]}
+                      >
                         {provider.name}
                       </Text>
                       <Text
                         numberOfLines={1}
-                        style={[styles.providerDetail, { color: theme.textSecondary }]}
+                        style={[
+                          styles.providerDetail,
+                          { color: theme.textSecondary },
+                        ]}
                       >
                         {provider.detail}
                       </Text>
@@ -442,7 +488,9 @@ export default function CartScreen() {
                         styles.radio,
                         {
                           borderColor: selected ? theme.primary : theme.border,
-                          backgroundColor: selected ? theme.primary : 'transparent',
+                          backgroundColor: selected
+                            ? theme.primary
+                            : "transparent",
                         },
                       ]}
                     >
@@ -464,13 +512,16 @@ export default function CartScreen() {
             <Ionicons name="qr-code-outline" size={36} color={theme.primary} />
             <View style={styles.qrInfo}>
               <Text style={[styles.qrTitle, { color: theme.text }]}>
-                Scan to pay with {providerCode === 'KBZ_PAY' ? 'KBZ Pay' : 'Wave Pay'}
+                Scan to pay with{" "}
+                {providerCode === "KBZ_PAY" ? "KBZ Pay" : "Wave Pay"}
               </Text>
               <Text style={[styles.qrDetail, { color: theme.textSecondary }]}>
-                Scan the QR, then enter the transaction reference and attach your
-                payment screenshot below.
+                Scan the QR, then enter the transaction reference and attach
+                your payment screenshot below.
               </Text>
-              <Text style={[styles.demoBadge, { color: theme.danger }]}>DEMO QR</Text>
+              <Text style={[styles.demoBadge, { color: theme.danger }]}>
+                DEMO QR
+              </Text>
             </View>
           </View>
 
@@ -495,11 +546,20 @@ export default function CartScreen() {
               ]}
             >
               {paymentImage ? (
-                <Image source={{ uri: paymentImage.uri }} style={styles.pickPreview} />
+                <Image
+                  source={{ uri: paymentImage.uri }}
+                  style={styles.pickPreview}
+                />
               ) : (
                 <>
-                  <Ionicons name="image-outline" size={28} color={theme.textSecondary} />
-                  <Text style={[styles.pickText, { color: theme.textSecondary }]}>
+                  <Ionicons
+                    name="image-outline"
+                    size={28}
+                    color={theme.textSecondary}
+                  />
+                  <Text
+                    style={[styles.pickText, { color: theme.textSecondary }]}
+                  >
                     Tap to choose a screenshot
                   </Text>
                 </>
@@ -508,7 +568,7 @@ export default function CartScreen() {
           </View>
 
           <Button
-            title={checkout.isPending ? 'Submitting...' : 'Confirm Order'}
+            title={checkout.isPending ? "Submitting..." : "Confirm Order"}
             size="lg"
             fullWidth
             icon="shield-checkmark-outline"
@@ -530,7 +590,7 @@ export default function CartScreen() {
         variant="ghost"
         size="md"
         icon="arrow-back"
-        onPress={() => router.push('/products')}
+        onPress={() => router.push("/products")}
       />
     </Screen>
   );
@@ -568,9 +628,9 @@ function SummaryRow({
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     marginBottom: Spacing.three,
   },
   headerSub: {
@@ -581,7 +641,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.four,
   },
   itemCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: Spacing.two,
     gap: Spacing.three,
   },
@@ -589,21 +649,21 @@ const styles = StyleSheet.create({
     width: 92,
     height: 92,
     borderRadius: Radius.md,
-    overflow: 'hidden',
-    backgroundColor: '#f1f5f9',
+    overflow: "hidden",
+    backgroundColor: "#f1f5f9",
   },
   itemImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   itemBody: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   itemTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   itemTitleWrap: {
     flex: 1,
@@ -611,66 +671,66 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   itemPrice: {
     marginTop: 4,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   removeBtn: {
     height: 34,
     width: 34,
     borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   lineTotal: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   qtyStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: Radius.md,
   },
   qtyBtn: {
     height: 32,
     width: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   qtyValue: {
     minWidth: 24,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   summary: {
     marginBottom: Spacing.four,
     gap: Spacing.two,
   },
   summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   summaryLabel: {
     fontSize: 14,
   },
   summaryValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   summaryValueBold: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   divider: {
     height: 1,
@@ -700,16 +760,16 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   providerRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.two,
   },
   providerCard: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.three,
     borderRadius: Radius.md,
     borderWidth: 1.5,
@@ -719,20 +779,20 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40,
     borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   providerMarkText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   providerInfo: {
     flex: 1,
   },
   providerName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   providerDetail: {
     fontSize: 11,
@@ -742,15 +802,15 @@ const styles = StyleSheet.create({
     width: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   qrBox: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.three,
     padding: Spacing.three,
     borderRadius: Radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   qrInfo: {
     flex: 1,
@@ -758,7 +818,7 @@ const styles = StyleSheet.create({
   },
   qrTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   qrDetail: {
     fontSize: 12,
@@ -766,25 +826,25 @@ const styles = StyleSheet.create({
   },
   demoBadge: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 1,
     marginTop: 2,
   },
   imagePicker: {
     minHeight: 140,
     borderWidth: 1.5,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.two,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   pickText: {
     fontSize: 13,
   },
   pickPreview: {
-    width: '100%',
+    width: "100%",
     height: 160,
   },
 });

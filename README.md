@@ -23,6 +23,20 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
+## Connecting to the local API
+
+The app defaults to `http://localhost:3000/api`. You can override this with
+`EXPO_PUBLIC_API_URL` in a `.env` file. Native development redirects a
+localhost URL to the host running Expo when Expo is connected over the LAN.
+For an Android emulator when Expo is connected via localhost, the app uses
+`10.0.2.2` to reach your computer.
+
+For a physical device, keep the device and computer on the same Wi-Fi network,
+allow incoming connections to port 3000 through the computer's firewall, and
+make sure the backend listens on the computer's network interface. If the
+device cannot reach the API automatically, set `EXPO_PUBLIC_API_URL` to
+`http://<computer-LAN-IP>:3000/api` and restart Expo.
+
 You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
 ## Get a fresh project

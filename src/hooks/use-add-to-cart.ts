@@ -1,8 +1,11 @@
-import { createAddToCart } from '@/api/cart';
+import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+
+import { CART_QUERY_KEY, createAddToCart } from '@/api/cart';
+import { getApiErrorMessage } from '@/api/axios-instance';
 import { toast } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth-store';
 import type { Product } from '@/types';
-import { router } from 'expo-router';
 
 /**
  * Adds a product to the cart. Requires a signed-in customer; otherwise the
@@ -10,6 +13,7 @@ import { router } from 'expo-router';
  */
 export function useAddToCart() {
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
 
   return async (product: Product, quantity = 1) => {
     if (user?.role !== 'CUSTOMER') {
@@ -24,12 +28,13 @@ export function useAddToCart() {
         quantity,
       });
       if (response.success) {
+        queryClient.setQueryData(CART_QUERY_KEY, response.data);
         toast.success('Product added to cart');
       } else {
         toast.error('Could not add the product to your cart.');
       }
-    } catch {
-      toast.error('Something went wrong while adding to your cart.');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Could not add the product to your cart.'));
     }
   };
 }

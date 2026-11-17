@@ -1,28 +1,28 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 
-import { getOrders } from '@/api/orders';
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
-import { Screen } from '@/components/screen';
-import { Loading, StateView } from '@/components/state-view';
-import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { formatDate, formatPrice } from '@/lib/format';
-import { useAuthStore } from '@/store/auth-store';
+import { getOrders } from "@/api/orders";
+import { Button } from "@/components/button";
+import { Card } from "@/components/card";
+import { Screen } from "@/components/screen";
+import { Loading, StateView } from "@/components/state-view";
+import { ThemedText } from "@/components/themed-text";
+import { Radius, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { formatDate } from "@/lib/format";
+import { useAuthStore } from "@/store/auth-store";
 
 function statusStyle(status: string) {
   const key = status.toUpperCase();
-  if (key === 'CONFIRMED' || key === 'DELIVERED' || key === 'COMPLETED') {
-    return { bg: '#05966920', fg: '#059669' };
+  if (key === "CONFIRMED" || key === "DELIVERED" || key === "COMPLETED") {
+    return { bg: "#05966920", fg: "#059669" };
   }
-  if (key === 'CANCELLED') {
-    return { bg: '#e11d4820', fg: '#e11d48' };
+  if (key === "CANCELLED") {
+    return { bg: "#e11d4820", fg: "#e11d48" };
   }
-  return { bg: '#d9770620', fg: '#d97706' };
+  return { bg: "#d9770620", fg: "#d97706" };
 }
 
 export default function OrdersScreen() {
@@ -30,12 +30,12 @@ export default function OrdersScreen() {
   const user = useAuthStore((state) => state.user);
 
   const ordersQuery = useQuery({
-    queryKey: ['orders'],
+    queryKey: ["orders"],
     queryFn: getOrders,
-    enabled: user?.role === 'CUSTOMER',
+    enabled: user?.role === "CUSTOMER",
   });
 
-  if (user?.role !== 'CUSTOMER') {
+  if (user?.role !== "CUSTOMER") {
     return (
       <Screen scroll={false}>
         <StateView
@@ -43,7 +43,7 @@ export default function OrdersScreen() {
           title="Sign in to see your orders"
           message="Your order history is saved to your account."
           actionLabel="Go to Login"
-          onAction={() => router.push('/login')}
+          onAction={() => router.push("/login")}
         />
       </Screen>
     );
@@ -68,8 +68,12 @@ export default function OrdersScreen() {
             Track your purchases and delivery details
           </ThemedText>
         </View>
-        <View style={[styles.totalBadge, { backgroundColor: theme.primaryMuted }]}>
-          <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>Orders</Text>
+        <View
+          style={[styles.totalBadge, { backgroundColor: theme.primaryMuted }]}
+        >
+          <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>
+            Orders
+          </Text>
           <Text style={[styles.totalValue, { color: theme.primary }]}>
             {orders.length}
           </Text>
@@ -90,7 +94,7 @@ export default function OrdersScreen() {
           title="No orders yet"
           message="Once you place an order, its status and delivery info will show up here."
           actionLabel="Explore products"
-          onAction={() => router.push('/products')}
+          onAction={() => router.push("/products")}
         />
       ) : (
         <View style={styles.list}>
@@ -100,30 +104,41 @@ export default function OrdersScreen() {
               <Card key={order.id} style={styles.orderCard}>
                 <View style={styles.orderTopRow}>
                   <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: status.bg },
-                    ]}
+                    style={[styles.statusBadge, { backgroundColor: status.bg }]}
                   >
-                    <View style={[styles.statusDot, { backgroundColor: status.fg }]} />
+                    <View
+                      style={[styles.statusDot, { backgroundColor: status.fg }]}
+                    />
                     <Text style={[styles.statusText, { color: status.fg }]}>
                       {order.status}
                     </Text>
                   </View>
-                  <Text style={[styles.orderNumber, { color: theme.textSecondary }]}>
-                    #{order.orderNumber}
+                  <Text
+                    style={[styles.orderNumber, { color: theme.textSecondary }]}
+                  >
+                    #{order.orderNumber.slice(0, 7)}
                   </Text>
                 </View>
 
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
-                    <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
-                    <Text style={[styles.metaText, { color: theme.textSecondary }]}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={14}
+                      color={theme.textSecondary}
+                    />
+                    <Text
+                      style={[styles.metaText, { color: theme.textSecondary }]}
+                    >
                       {formatDate(order.createdAt)}
                     </Text>
                   </View>
                   <View style={styles.metaItem}>
-                    <Ionicons name="location-outline" size={14} color={theme.textSecondary} />
+                    <Ionicons
+                      name="location-outline"
+                      size={14}
+                      color={theme.textSecondary}
+                    />
                     <Text
                       numberOfLines={1}
                       style={[styles.metaText, { color: theme.textSecondary }]}
@@ -133,22 +148,32 @@ export default function OrdersScreen() {
                   </View>
                 </View>
 
-                <Text style={[styles.recipient, { color: theme.textSecondary }]}>
-                  Recipient:{' '}
-                  <Text style={{ color: theme.text, fontWeight: '700' }}>
+                <Text
+                  style={[styles.recipient, { color: theme.textSecondary }]}
+                >
+                  Recipient:{" "}
+                  <Text style={{ color: theme.text, fontWeight: "700" }}>
                     {order.shippingName}
-                  </Text>{' '}
+                  </Text>{" "}
                   · {order.shippingPhone}
                 </Text>
 
-                <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                <View
+                  style={[styles.divider, { backgroundColor: theme.border }]}
+                />
 
                 <View style={styles.itemsHeader}>
-                  <Ionicons name="cart-outline" size={15} color={theme.primary} />
+                  <Ionicons
+                    name="cart-outline"
+                    size={15}
+                    color={theme.primary}
+                  />
                   <Text style={[styles.itemsTitle, { color: theme.text }]}>
                     Items in this order
                   </Text>
-                  <Text style={[styles.itemsCount, { color: theme.textSecondary }]}>
+                  <Text
+                    style={[styles.itemsCount, { color: theme.textSecondary }]}
+                  >
                     ({order.items.length})
                   </Text>
                 </View>
@@ -163,23 +188,40 @@ export default function OrdersScreen() {
                         >
                           {item.productName}
                         </Text>
-                        <Text style={[styles.itemMeta, { color: theme.textSecondary }]}>
-                          {formatPrice(item.unitPrice)} · Qty {item.quantity}
+                        <Text
+                          style={[
+                            styles.itemMeta,
+                            { color: theme.textSecondary },
+                          ]}
+                        >
+                          {item.unitPrice} ks · Qty {item.quantity}
                         </Text>
                       </View>
-                      <Text style={[styles.itemSubtotal, { color: theme.text }]}>
-                        {formatPrice(item.subtotal)}
+                      <Text
+                        style={[styles.itemSubtotal, { color: theme.text }]}
+                      >
+                        {item.subtotal} Ks
                       </Text>
                     </View>
                   ))}
                 </View>
 
-                <View style={[styles.orderTotalRow, { borderTopColor: theme.border }]}>
-                  <Text style={[styles.orderTotalLabel, { color: theme.textSecondary }]}>
+                <View
+                  style={[
+                    styles.orderTotalRow,
+                    { borderTopColor: theme.border },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.orderTotalLabel,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
                     Order total
                   </Text>
                   <Text style={[styles.orderTotalValue, { color: theme.text }]}>
-                    {formatPrice(order.totalAmount)}
+                    {order.totalAmount} Ks
                   </Text>
                 </View>
 
@@ -188,7 +230,7 @@ export default function OrdersScreen() {
                   variant="ghost"
                   size="sm"
                   icon="arrow-forward"
-                  onPress={() => router.push('/products')}
+                  onPress={() => router.push("/products")}
                 />
               </Card>
             );
@@ -201,9 +243,9 @@ export default function OrdersScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     marginBottom: Spacing.three,
   },
   headerSub: {
@@ -214,16 +256,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: Radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   totalLabel: {
     fontSize: 11,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   totalValue: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   list: {
     gap: Spacing.three,
@@ -232,13 +274,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   orderTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: Spacing.three,
     paddingVertical: 4,
@@ -251,23 +293,23 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   orderNumber: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.three,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    maxWidth: '100%',
+    maxWidth: "100%",
   },
   metaText: {
     fontSize: 13,
@@ -281,13 +323,13 @@ const styles = StyleSheet.create({
     height: 1,
   },
   itemsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   itemsTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   itemsCount: {
     fontSize: 14,
@@ -296,9 +338,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.three,
   },
   itemInfo: {
@@ -307,30 +349,30 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   itemMeta: {
     fontSize: 12,
   },
   itemSubtotal: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   orderTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
     paddingTop: Spacing.two,
   },
   orderTotalLabel: {
     fontSize: 13,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   orderTotalValue: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: "800",
   },
 });
